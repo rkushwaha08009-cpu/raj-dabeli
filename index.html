@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raj Dabeli | Pro Delivery</title>
+    <style>
+        :root { --theme: #ea580c; --theme2: #ff9d00; }
+        body { margin: 0; font-family: sans-serif; background: #f8fafc; padding-bottom: 180px; color: #334155; }
+        
+        .header { 
+            background: linear-gradient(135deg, var(--theme), var(--theme2));
+            padding: 30px; text-align: center; color: white;
+            border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .item-card { 
+            background: white; margin: 12px 15px; padding: 18px; border-radius: 18px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
+        }
+
+        .qty-box { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 5px 10px; border-radius: 10px; }
+        .qty-btn { background: var(--theme); color: white; border: none; width: 32px; height: 32px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 18px; }
+
+        .footer { 
+            position: fixed; bottom: 0; width: 100%; background: white; padding: 15px 20px;
+            box-sizing: border-box; border-top: 1px solid #e2e8f0; z-index: 1000; box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+        }
+
+        .order-btn { 
+            background: #22c55e; color: white; border: none; padding: 14px 20px; 
+            border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px;
+        }
+
+        /* Modal / Form Styling */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
+        .checkout-box { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; color: black; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        
+        /* Image jaisa UI */
+        .perm-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 13px; color: #166534; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1 style="margin:0;">RAJ DABELI</h1>
+    <p style="margin:5px; font-weight:bold;">⚡ 15-20 MINS FAST DELIVERY</p>
+</div>
+
+<div id="menu-list"></div>
+
+<div class="footer">
+    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px; color:#64748b;">
+        <span>Items Total: <b id="it">₹0</b></span>
+        <span>Delivery: <b id="dc">₹0</b></span>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div id="gt" style="font-size: 2rem; font-weight: 900; color: #1e293b;">₹0</div>
+        <div style="color:#22c55e; font-weight:bold; font-size:12px;">NEXT: DETAILS ⮕</div>
+    </div>
+    <button class="order-btn" onclick="triggerLocation()">PLACE ORDER</button>
+</div>
+
+<div id="orderModal" class="modal">
+    <div class="checkout-box">
+        <h3 style="margin:0 0 15px 0; color:var(--theme);">DELIVERY DETAILS</h3>
+        <div class="perm-box" id="locStatus">📍 Location access granted!</div>
+        
+        <input type="text" id="custName" placeholder="Aapka Naam">
+        <input type="number" id="custPhone" placeholder="Mobile Number">
+        <textarea id="custAddr" placeholder="Ghar No., Gali, Landmark (Likhit Address)"></textarea>
+
+        <button class="order-btn" onclick="finalizeOrder()">SEND ON WHATSAPP</button>
+        <button onclick="document.getElementById('orderModal').style.display='none'" style="width:100%; background:none; border:none; color:red; margin-top:12px; cursor:pointer;">Cancel</button>
+    </div>
+</div>
+
+<script>
+    const API = "https://raj-dabeli-default-rtdb.firebaseio.com/menu.json";
+    const PHONE = "917507726901";
+    let cart = {}, total = 0, userMapLink = "Location Not Shared";
+
+    async function load() {
+        const res = await fetch(API);
+        const data = await res.json();
+        let h = "";
+        for(let id in data) {
+            if(data[id].inStock) {
+                h += `<div class="item-card">
+                    <div><b>${data[id].name}</b><br><span style="color:var(--theme); font-weight:bold;">₹${data[id].price}</span></div>
+                    <div class="qty-box">
+                        <button class="qty-btn" onclick="upd('${id}','${data[id].name}',${data[id].price},-1)">-</button>
+                        <b id="q-${id}">0</b>
+                        <button class="qty-btn" onclick="upd('${id}','${data[id].name}',${data[id].price},1)">+</button>
+                    </div>
+                </div>`;
+            }
+        }
+        document.getElementById('menu-list').innerHTML = h;
+    }
+
+    function upd(id, n, p, c) {
+        if(!cart[id]) cart[id] = {n, p, q:0};
+        cart[id].q += c;
+        if(cart[id].q < 0) cart[id].q = 0;
+        document.getElementById(`q-${id}`).innerText = cart[id].q;
+
+        let s = 0, active = false;
+        for(let i in cart) { s += cart[i].q * cart[i].p; if(cart[i].q > 0) active = true; }
+        let d = active ? 20 : 0;
+        total = active ? s + d : 0;
+
+        document.getElementById('it').innerText = "₹" + s;
+        document.getElementById('dc').innerText = "₹" + d;
+        document.getElementById('gt').innerText = "₹" + total;
+    }
+
+    // Yeh function asli permission trigger karega
+    function triggerLocation() {
+        if(total === 0) return alert("Select Items!");
+        
+        // Asli Browser Permission Popup
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    userMapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+                    document.getElementById('locStatus').innerText = "✅ Location link attached!";
+                    document.getElementById('orderModal').style.display = 'flex';
+                },
+                (err) => {
+                    alert("Kripya Location ON karein taaki delivery fast ho sake!");
+                    document.getElementById('locStatus').innerText = "❌ Location off (Manual entry required)";
+                    document.getElementById('orderModal').style.display = 'flex';
+                }
+            );
+        } else {
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+    }
+
+    function finalizeOrder() {
+        const name = document.getElementById('custName').value;
+        const ph = document.getElementById('custPhone').value;
+        const addr = document.getElementById('custAddr').value;
+
+        if(!name || !ph || !addr) return alert("Details bhariye!");
+
+        let msg = `🍔 *NAYA ORDER - RAJ DABELI*\n\n👤 *Name:* ${name}\n📞 *Call:* ${ph}\n🏠 *Address:* ${addr}\n📍 *Maps:* ${userMapLink}\n\n*ITEMS:*\n`;
+        for(let i in cart) if(cart[i].q > 0) msg += `▪️ ${cart[i].n} x ${cart[i].q}\n`;
+        msg += `\n💰 *TOTAL BILL: ₹${total}*`;
+
+        window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`);
+        location.reload();
+    }
+    load();
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Raj Dabeli</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: white; padding: 20px; }
+        .card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; background: #ea580c; color: white; cursor: pointer; }
+        .stock-btn { padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .in { background: #22c55e; color: white; }
+        .out { background: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+    <h2 style="text-align: center;">DASHBOARD</h2>
+    
+    <div style="background: #1e293b; padding: 15px; border-radius: 15px; margin-bottom: 25px;">
+        <input type="text" id="n" placeholder="Item Name (e.g. Cheese Dabeli)">
+        <input type="number" id="p" placeholder="Price (₹)">
+        <button class="btn" onclick="addItem()">ADD NEW ITEM</button>
+    </div>
+
+    <div id="admin-list"></div>
+
+    <script>
+        const API = "https://raj-dabeli-default-rtdb.firebaseio.com/menu.json";
+
+        async function addItem() {
+            const name = document.getElementById('n').value;
+            const price = document.getElementById('p').value;
+            if(!name || !price) return alert("Fill details!");
+            await fetch(API, { method: 'POST', body: JSON.stringify({ name, price, inStock: true }) });
+            location.reload();
+        }
+
+        async function loadAdmin() {
+            const res = await fetch(API);
+            const data = await res.json();
+            let html = "";
+            for(let id in data) {
+                html += `
+                <div class="card">
+                    <div><b>${data[id].name}</b><br>₹${data[id].price}</div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button class="stock-btn ${data[id].inStock ? 'in' : 'out'}" onclick="toggleStock('${id}', ${data[id].inStock})">
+                            ${data[id].inStock ? 'IN STOCK' : 'SOLD OUT'}
+                        </button>
+                        <button onclick="deleteItem('${id}')" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">×</button>
+                    </div>
+                </div>`;
+            }
+            document.getElementById('admin-list').innerHTML = html;
+        }
+
+        async function toggleStock(id, current) {
+            await fetch(`https://raj-dabeli-default-rtdb.firebaseio.com/menu/${id}.json`, { 
+                method: 'PATCH', 
+                body: JSON.stringify({ inStock: !current }) 
+            });
+            loadAdmin();
+        }
+
+        async function deleteItem(id) {
+            if(confirm("Delete this item?")) {
+                await fetch(`https://raj-dabeli-default-rtdb.firebaseio.com/menu/${id}.json`, { method: 'DELETE' });
+                loadAdmin();
+            }
+        }
+        loadAdmin();
+    </script>
+</body>
+</html>
