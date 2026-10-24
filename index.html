@@ -1,160 +1,543 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raj Dabeli | Pro Delivery</title>
-    <style>
-        :root { --theme: #ea580c; --theme2: #ff9d00; }
-        body { margin: 0; font-family: sans-serif; background: #f8fafc; padding-bottom: 180px; color: #334155; }
-        
-        .header { 
-            background: linear-gradient(135deg, var(--theme), var(--theme2));
-            padding: 30px; text-align: center; color: white;
-            border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ALPHA — Private Chat, Vault & Calls</title>
+  <meta name="theme-color" content="#071a13">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-        .item-card { 
-            background: white; margin: 12px 15px; padding: 18px; border-radius: 18px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
-        }
+  <style>
+    :root{--bg:#071a13;--panel:#0d281d;--panel2:#123b2a;--line:#24553d;--green:#00f58a;--text:#f2fff8;--muted:#9bb8a8;--danger:#ff7777}
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif;-webkit-tap-highlight-color:transparent}
+    body{background:radial-gradient(circle at top,#103b28,#06150f 55%);color:var(--text);height:100dvh;display:flex;justify-content:center;align-items:center;overflow:hidden}
+    button,input{font:inherit}
+    button{cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    input{min-width:0;background:#061a11;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;outline:none;font-size:13px}
+    input:focus{border-color:var(--green)}
+    
+    .app{width:100%;height:100dvh;display:flex;flex-direction:column;background:rgba(7,26,19,.92);position:relative;overflow:hidden}
+    @media(min-width:700px){.app{height:calc(100dvh - 36px);max-width:430px;border:1px solid var(--line);border-radius:24px;box-shadow:0 0 30px rgba(0,255,135,0.2)}}
+    
+    header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);background:#0a2118;z-index:20}
+    h1{font-size:17px;margin:0;letter-spacing:1px}h1 span{color:var(--green)}
+    .sub{font-size:11px;color:var(--muted);margin-top:2px}
+    .status{font-size:11px;color:var(--green);text-align:right}
+    
+    .setup{padding:10px 12px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line);background:#091e15}
+    .setup-row{display:flex;gap:6px;width:100%}
+    .setup input{flex:1}
+    
+    .tabs{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--line);background:#081c13}
+    .tabs button{flex:1;background:transparent;color:var(--muted);padding:8px 4px;font-size:12px;border:none;border-radius:8px}
+    .tabs button.active{color:var(--green);background:#103524;border:1px solid #286947}
+    
+    .view{display:none;min-height:0;flex:1;flex-direction:column}
+    .view.active{display:flex}
+    
+    .messages{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+    .empty{margin:auto;text-align:center;color:var(--muted);font-size:13px;padding:20px}
+    .msg{max-width:85%;padding:10px 12px;border:1px solid var(--line);border-radius:15px;background:#0d2a1d;align-self:flex-start;overflow-wrap:anywhere;font-size:13px}
+    .msg.mine{align-self:flex-end;background:#12432c;border-color:#24784c}
+    .meta{font-size:9px;color:var(--muted);margin-top:4px;display:flex;justify-content:flex-end;gap:4px}
+    .msg img{max-width:100%;max-height:220px;object-fit:cover;border-radius:8px;display:block;margin-bottom:6px}
+    
+    .composer{padding:10px;display:flex;gap:7px;border-top:1px solid var(--line);background:#091e15;align-items:center}
+    .composer input[type=text]{flex:1}
+    .iconbtn{padding:10px;min-width:40px;display:flex;align-items:center;justify-content:center}
+    .send{background:var(--green);color:#052014;border-color:var(--green);font-weight:800}
+    
+    /* Vault View */
+    .vault-container{flex:1;display:flex;flex-direction:column;overflow-y:auto;padding:16px}
+    .pin-lock-box{margin:auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;max-width:260px;width:100%}
+    .vault-icon{width:56px;height:56px;border-radius:50%;background:rgba(19,78,53,0.4);border:1px solid rgba(0,255,135,0.4);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:22px}
+    .pin-dots{display:flex;gap:14px;margin:4px 0}
+    .pin-dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(0,255,135,0.5)}
+    .pin-dot.active{background-color:var(--green);border-color:var(--green)}
+    .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+    .key-btn{height:46px;border-radius:25px;background:#0e2f20;border:1px solid var(--line);color:var(--text);font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center}
+    .vault-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding-bottom:16px}
+    .vault-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative}
+    .vault-card img{width:100%;height:110px;object-fit:cover;display:block}
+    .share-vault{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(10,38,25,0.9);border:none;color:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px}
 
-        .qty-box { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 5px 10px; border-radius: 10px; }
-        .qty-btn { background: var(--theme); color: white; border: none; width: 32px; height: 32px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 18px; }
-
-        .footer { 
-            position: fixed; bottom: 0; width: 100%; background: white; padding: 15px 20px;
-            box-sizing: border-box; border-top: 1px solid #e2e8f0; z-index: 1000; box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
-        }
-
-        .order-btn { 
-            background: #22c55e; color: white; border: none; padding: 14px 20px; 
-            border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px;
-        }
-
-        /* Modal / Form Styling */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
-        .checkout-box { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; color: black; }
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        
-        /* Image jaisa UI */
-        .perm-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 13px; color: #166534; }
-    </style>
+    /* Calls View */
+    .callpanel{padding:16px;display:flex;flex-direction:column;gap:12px;overflow:auto;flex:1}
+    .callvideo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .callvideo video{width:100%;height:140px;background:#020806;border-radius:12px;object-fit:cover;border:1px solid var(--line)}
+    .callactions{display:flex;gap:8px;flex-wrap:wrap}
+    .danger{background:#4a1d22;border-color:#82333b}
+    .hint{font-size:11px;color:var(--muted);line-height:1.4}
+    
+    #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#eafff2;color:#052014;border-radius:10px;padding:8px 12px;max-width:90vw;display:none;z-index:99;font-size:12px;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
+  </style>
 </head>
 <body>
 
-<div class="header">
-    <h1 style="margin:0;">RAJ DABELI</h1>
-    <p style="margin:5px; font-weight:bold;">⚡ 15-20 MINS FAST DELIVERY</p>
+<div class="app">
+  <header>
+    <div>
+      <h1>✦ <span>ALPHA</span> SECURE</h1>
+      <div class="sub" id="activeUserLabel">Profile: User A1225</div>
+    </div>
+    <div>
+      <div id="connStatus" class="status">Connecting…</div>
+      <div id="userShort" class="sub" style="text-align:right">Checking ID</div>
+    </div>
+  </header>
+
+  <!-- ROOM SETUP PANEL -->
+  <div class="setup">
+    <div class="setup-row">
+      <input id="roomInput" placeholder="Enter Room Code (e.g. 6565)" autocomplete="off">
+      <button onclick="toggleUser()" style="background:#134e35; color:var(--green);" title="Switch User A/B">⇄ <span id="switchBtnText">A1225</span></button>
+    </div>
+    <div class="setup-row">
+      <button onclick="createRoom()" style="flex:1; background:#134e35; color:var(--green); border-color:#286947;">🛠️ Create Room (User A)</button>
+      <button onclick="joinRoom()" style="flex:1; background:#0e2f20; color:var(--text);">🚪 Join Room (User B)</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="active" data-view="chat"><i class="fa-solid fa-comments"></i> Chat</button>
+    <button data-view="media"><i class="fa-solid fa-folder-open"></i> Media</button>
+    <button data-view="vault"><i class="fa-solid fa-vault"></i> Vault</button>
+    <button data-view="calls"><i class="fa-solid fa-phone-alt"></i> Calls</button>
+  </div>
+
+  <!-- CHAT VIEW -->
+  <section id="chat" class="view active">
+    <div id="messages" class="messages">
+      <div class="empty">Pehle room create ya join karein.</div>
+    </div>
+    <form id="composer" class="composer">
+      <button type="button" class="iconbtn" id="pickBtn" title="Attach file"><i class="fa-solid fa-paperclip"></i></button>
+      <input id="fileInput" type="file" hidden accept="image/*,video/*,audio/*,.pdf,.txt">
+      <button type="button" class="iconbtn" id="recordBtn" title="Voice note"><i class="fa-solid fa-microphone"></i></button>
+      <!-- Character limit removed -->
+      <input id="textInput" type="text" placeholder="Type secure message..." autocomplete="off">
+      <button class="send iconbtn" type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+    </form>
+  </section>
+
+  <!-- MEDIA GALLERY VIEW -->
+  <section id="media" class="view">
+    <div style="padding:10px; border-bottom:1px solid var(--line); display:flex; gap:8px">
+      <input id="mediaSearch" placeholder="Search shared files..." style="flex:1">
+      <span style="font-size:11px; color:var(--green); align-self:center" id="mediaCount">0 files</span>
+    </div>
+    <div id="mediaGrid" style="flex:1; overflow:auto; padding:12px; display:grid; grid-template-columns:repeat(2,1fr); gap:10px">
+      <div class="empty">No shared media yet.</div>
+    </div>
+  </section>
+
+  <!-- VAULT VIEW (PIN: 1225) -->
+  <section id="vault" class="view">
+    <div id="vaultPinScreen" class="vault-container">
+      <div class="pin-lock-box">
+        <div class="vault-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+          <h3 style="font-size:15px; font-weight:700">Secret Photo Vault</h3>
+          <p style="font-size:11px; color:var(--muted); margin-top:2px">Enter PIN (Default: <strong style="color:var(--green)">1225</strong>)</p>
+        </div>
+        <div class="pin-dots">
+          <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+        <p id="pinErrorMsg" style="font-size:11px; color:var(--danger); height:14px; font-weight:600"></p>
+        <div class="keypad">
+          <button type="button" onclick="pressPin('1')">1</button>
+          <button type="button" onclick="pressPin('2')">2</button>
+          <button type="button" onclick="pressPin('3')">3</button>
+          <button type="button" onclick="pressPin('4')">4</button>
+          <button type="button" onclick="pressPin('5')">5</button>
+          <button type="button" onclick="pressPin('6')">6</button>
+          <button type="button" onclick="pressPin('7')">7</button>
+          <button type="button" onclick="pressPin('8')">8</button>
+          <button type="button" onclick="pressPin('9')">9</button>
+          <button type="button" onclick="clearPin()" style="font-size:11px; color:var(--danger)">CLR</button>
+          <button type="button" onclick="pressPin('0')">0</button>
+          <button type="button" onclick="backspacePin()" style="color:var(--green)"><i class="fa-solid fa-delete-left"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="vaultContentScreen" class="vault-container hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+        <span style="font-size:12px; color:var(--green); font-weight:700"><i class="fa-solid fa-lock-open"></i> Unlocked Vault</span>
+        <div style="display:flex; gap:6px">
+          <button onclick="addVaultItem()" style="padding:4px 10px; font-size:11px">+ Add</button>
+          <button onclick="lockVault()" style="padding:4px 8px; font-size:11px; background:#4a1d22"><i class="fa-solid fa-lock"></i></button>
+        </div>
+      </div>
+      <div id="vaultGrid" class="vault-grid"></div>
+    </div>
+  </section>
+
+  <!-- CALLS VIEW -->
+  <section id="calls" class="view">
+    <div class="callpanel">
+      <h2 style="font-size:15px">Secure Voice & Video Calls</h2>
+      <div class="hint">Ensure both devices are in the same room code and grant permissions.</div>
+      <div class="callvideo">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+      </div>
+      <div class="callactions">
+        <button id="voiceCallBtn" style="flex:1"><i class="fa-solid fa-phone"></i> Voice</button>
+        <button id="videoCallBtn" style="flex:1"><i class="fa-solid fa-video"></i> Video</button>
+        <button id="answerBtn" disabled style="flex:1"><i class="fa-solid fa-phone-flip"></i> Answer</button>
+        <button id="hangupBtn" class="danger" disabled style="flex:1"><i class="fa-solid fa-phone-slash"></i> Hangup</button>
+      </div>
+      <div id="callStatus" class="hint">No active call.</div>
+    </div>
+  </section>
+
 </div>
 
-<div id="menu-list"></div>
+<div id="toast"></div>
 
-<div class="footer">
-    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px; color:#64748b;">
-        <span>Items Total: <b id="it">₹0</b></span>
-        <span>Delivery: <b id="dc">₹0</b></span>
-    </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <div id="gt" style="font-size: 2rem; font-weight: 900; color: #1e293b;">₹0</div>
-        <div style="color:#22c55e; font-weight:bold; font-size:12px;">NEXT: DETAILS ⮕</div>
-    </div>
-    <button class="order-btn" onclick="triggerLocation()">PLACE ORDER</button>
-</div>
-
-<div id="orderModal" class="modal">
-    <div class="checkout-box">
-        <h3 style="margin:0 0 15px 0; color:var(--theme);">DELIVERY DETAILS</h3>
-        <div class="perm-box" id="locStatus">📍 Location access granted!</div>
-        
-        <input type="text" id="custName" placeholder="Aapka Naam">
-        <input type="number" id="custPhone" placeholder="Mobile Number">
-        <textarea id="custAddr" placeholder="Ghar No., Gali, Landmark (Likhit Address)"></textarea>
-
-        <button class="order-btn" onclick="finalizeOrder()">SEND ON WHATSAPP</button>
-        <button onclick="document.getElementById('orderModal').style.display='none'" style="width:100%; background:none; border:none; color:red; margin-top:12px; cursor:pointer;">Cancel</button>
-    </div>
-</div>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
 <script>
-    const API = "https://raj-dabeli-default-rtdb.firebaseio.com/menu.json";
-    const PHONE = "917507726901";
-    let cart = {}, total = 0, userMapLink = "Location Not Shared";
+'use strict';
+const firebaseConfig = {
+  apiKey:"AIzaSyCJUAwEEWawZKt6qEztyVQ8X_J1hFZPZdk",
+  authDomain:"chori-de5f4.firebaseapp.com",
+  databaseURL:"https://chori-de5f4-default-rtdb.firebaseio.com",
+  projectId:"chori-de5f4",
+  storageBucket:"chori-de5f4.firebasestorage.app",
+  messagingSenderId:"321941175043",
+  appId:"1:321941175043:web:29d02684c9d45ded134736"
+};
 
-    async function load() {
-        const res = await fetch(API);
-        const data = await res.json();
-        let h = "";
-        for(let id in data) {
-            if(data[id].inStock) {
-                h += `<div class="item-card">
-                    <div><b>${data[id].name}</b><br><span style="color:var(--theme); font-weight:bold;">₹${data[id].price}</span></div>
-                    <div class="qty-box">
-                        <button class="qty-btn" onclick="upd('${id}','${data[id].name}',${data[id].price},-1)">-</button>
-                        <b id="q-${id}">0</b>
-                        <button class="qty-btn" onclick="upd('${id}','${data[id].name}',${data[id].price},1)">+</button>
-                    </div>
-                </div>`;
-            }
-        }
-        document.getElementById('menu-list').innerHTML = h;
+let auth, db, storage, uid=null, room="", currentProfile="A1225";
+let chatRef=null, mediaRef=null, callRef=null;
+let chatListener=null, mediaListener=null, callListener=null;
+let localStream=null, pc=null, recorder=null, recordChunks=[];
+let currentCallId=null, isCaller=false, queuedOffer=null, knownMedia={};
+
+const $=id=>document.getElementById(id);
+function toast(s){const t=$('toast');t.textContent=s;t.style.display='block';clearTimeout(t.timer);t.timer=setTimeout(()=>t.style.display='none',3000)}
+function safeText(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function stamp(ts){return new Date(ts||Date.now()).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
+
+// Switch Views
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));
+function switchView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===name));
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  if(name==='vault' && isVaultUnlocked) renderVaultGrid();
+}
+
+// User Switching (A1225 / B1225)
+function toggleUser(){
+  currentProfile = currentProfile === 'A1225' ? 'B1225' : 'A1225';
+  $('activeUserLabel').textContent = `Profile: User ${currentProfile}`;
+  $('switchBtnText').textContent = currentProfile;
+  toast(`Switched to User ${currentProfile}`);
+}
+
+// Firebase Init
+firebase.initializeApp(firebaseConfig);
+auth=firebase.auth(); db=firebase.database(); storage=firebase.storage();
+
+auth.signInAnonymously().then(cred=>{
+  uid=cred.user.uid;
+  $('userShort').textContent='ID: '+uid.slice(0,5);
+  $('connStatus').textContent='Online';
+}).catch(e=>{
+  $('connStatus').textContent='Auth Err';
+  toast('Auth: '+e.message);
+});
+
+// Room Creation (User A)
+async function createRoom(){
+  const raw = $('roomInput').value.trim();
+  if(!raw){ toast('Room code dalo pehle (jaise 6565)'); return; }
+  room = raw;
+  const enc = encodeURIComponent(room);
+  const metaRef = db.ref('alphaRooms/' + enc + '/meta');
+  
+  try {
+    const snap = await metaRef.once('value');
+    if(snap.exists()){
+      toast('Ye room pehle se bana hua hai! Join karo.');
+      return;
     }
+    await metaRef.set({ creator: currentProfile, createdAt: Date.now() });
+    initRoomListeners(enc);
+    toast(`Room ${room} successfully create ho gaya!`);
+  } catch(err) {
+    toast('Room creation error: ' + err.message);
+  }
+}
 
-    function upd(id, n, p, c) {
-        if(!cart[id]) cart[id] = {n, p, q:0};
-        cart[id].q += c;
-        if(cart[id].q < 0) cart[id].q = 0;
-        document.getElementById(`q-${id}`).innerText = cart[id].q;
-
-        let s = 0, active = false;
-        for(let i in cart) { s += cart[i].q * cart[i].p; if(cart[i].q > 0) active = true; }
-        let d = active ? 20 : 0;
-        total = active ? s + d : 0;
-
-        document.getElementById('it').innerText = "₹" + s;
-        document.getElementById('dc').innerText = "₹" + d;
-        document.getElementById('gt').innerText = "₹" + total;
+// Room Joining (User B)
+async function joinRoom(){
+  const raw = $('roomInput').value.trim();
+  if(!raw){ toast('Room code dalo pehle (jaise 6565)'); return; }
+  room = raw;
+  const enc = encodeURIComponent(room);
+  const metaRef = db.ref('alphaRooms/' + enc + '/meta');
+  
+  try {
+    const snap = await metaRef.once('value');
+    if(!snap.exists()){
+      toast('Room exist nahi karta! Pehle User A ko Room Create karne ko bolo.');
+      return;
     }
+    initRoomListeners(enc);
+    toast(`Room ${room} successfully join ho gaya!`);
+  } catch(err) {
+    toast('Room join error: ' + err.message);
+  }
+}
 
-    // Yeh function asli permission trigger karega
-    function triggerLocation() {
-        if(total === 0) return alert("Select Items!");
-        
-        // Asli Browser Permission Popup
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    userMapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                    document.getElementById('locStatus').innerText = "✅ Location link attached!";
-                    document.getElementById('orderModal').style.display = 'flex';
-                },
-                (err) => {
-                    alert("Kripya Location ON karein taaki delivery fast ho sake!");
-                    document.getElementById('locStatus').innerText = "❌ Location off (Manual entry required)";
-                    document.getElementById('orderModal').style.display = 'flex';
-                }
-            );
-        } else {
-            document.getElementById('orderModal').style.display = 'flex';
-        }
+// Initialize Room Listeners
+function initRoomListeners(enc){
+  if(chatRef) leaveRoom();
+  chatRef=db.ref('alphaRooms/'+enc+'/messages');
+  mediaRef=db.ref('alphaRooms/'+enc+'/media');
+  callRef=db.ref('alphaRooms/'+enc+'/call');
+  
+  $('messages').innerHTML='';
+  
+  chatListener=snap=>{if(snap.exists()) renderMessage(snap.key,snap.val())};
+  chatRef.limitToLast(100).on('child_added',chatListener);
+  
+  mediaListener=snap=>{knownMedia=snap.val()||{};renderMedia()};
+  mediaRef.on('value',mediaListener);
+  
+  callListener=snap=>handleCallState(snap.val()||{});
+  callRef.on('value',callListener);
+  
+  $('connStatus').textContent='Room: '+room;
+}
+
+function leaveRoom(){
+  if(chatRef&&chatListener) chatRef.off('child_added',chatListener);
+  if(mediaRef&&mediaListener) mediaRef.off('value',mediaListener);
+  if(callRef&&callListener) callRef.off('value',callListener);
+  chatRef=mediaRef=callRef=null;
+}
+
+// Chat Messaging
+function renderMessage(key,m){
+  if(document.querySelector(`[data-msg="${key}"]`)) return;
+  const empty=$('messages').querySelector('.empty');if(empty)empty.remove();
+  const mine=m.senderName===currentProfile;
+  const el=document.createElement('div');
+  el.className='msg'+(mine?' mine':'');
+  el.dataset.msg=key;
+  
+  let content='';
+  if(m.text) content+=`<div>${safeText(m.text)}</div>`;
+  if(m.file){
+    if(m.file.type.startsWith('image/')) content+=`<a href="${m.file.url}" target="_blank"><img src="${m.file.url}"></a>`;
+    else content+=`<div style="font-size:12px"><a href="${m.file.url}" target="_blank" style="color:var(--green)">📄 ${safeText(m.file.name)}</a></div>`;
+  }
+  el.innerHTML=content+`<div class="meta"><span>${m.senderName}</span>·<span>${stamp(m.createdAt)}</span></div>`;
+  $('messages').appendChild(el);
+  $('messages').scrollTop=$('messages').scrollHeight;
+}
+
+$('composer').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const text=$('textInput').value.trim();
+  if(!chatRef){toast('Pehle Room Create ya Join karo!');return}
+  if(!text) return;
+  await chatRef.push({senderName:currentProfile,text,createdAt:Date.now()});
+  $('textInput').value='';
+});
+
+// File Sharing
+$('pickBtn').addEventListener('click',()=>$('fileInput').click());
+$('fileInput').addEventListener('change',async e=>{
+  const file=e.target.files[0];e.target.value='';
+  if(!file||!chatRef){toast('Pehle Room Create ya Join karo!');return}
+  if(file.size>20*1024*1024){toast('File size max 20MB');return}
+  toast('Uploading file...');
+  const ref=storage.ref(`rooms/${room}/${Date.now()}_${file.name}`);
+  const snap=await ref.put(file);
+  const url=await snap.ref.getDownloadURL();
+  const fileMeta={name:file.name,type:file.type,url};
+  await mediaRef.push({name:file.name,type:file.type,url,createdAt:Date.now()});
+  await chatRef.push({senderName:currentProfile,text:`Shared file: ${file.name}`,file:fileMeta,createdAt:Date.now()});
+  toast('Upload complete');
+});
+
+function renderMedia(){
+  const grid=$('mediaGrid');grid.innerHTML='';
+  const entries=Object.entries(knownMedia);
+  $('mediaCount').textContent=entries.length+' files';
+  if(!entries.length){grid.innerHTML='<div class="empty">No shared files yet.</div>';return}
+  for(let [id,m] of entries){
+    const card=document.createElement('div');card.className='vault-card';
+    card.innerHTML=m.type.startsWith('image/')?`<img src="${m.url}"><a href="${m.url}" target="_blank" class="share-vault"><i class="fa-solid fa-download"></i></a>`:`<div style="padding:20px;text-align:center;font-size:24px">📄<br><a href="${m.url}" target="_blank" style="font-size:10px;color:var(--green)">Open</a></div>`;
+    grid.appendChild(card);
+  }
+}
+
+// Voice Notes Recording
+let recording=false;
+$('recordBtn').addEventListener('click',async()=>{
+  if(!chatRef){toast('Pehle Room Create ya Join karo!');return}
+  if(!recording){
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      recorder=new MediaRecorder(stream);recordChunks=[];
+      recorder.ondataavailable=e=>recordChunks.push(e.data);
+      recorder.onstop=async()=>{
+        stream.getTracks().forEach(t=>t.stop());
+        const blob=new Blob(recordChunks,{type:'audio/webm'});
+        toast('Uploading voice note...');
+        const ref=storage.ref(`rooms/${room}/voice_${Date.now()}.webm`);
+        const snap=await ref.put(blob);
+        const url=await snap.ref.getDownloadURL();
+        await chatRef.push({senderName:currentProfile,text:'🎤 Voice Note',file:{name:'VoiceNote.webm',type:'audio/webm',url},createdAt:Date.now()});
+      };
+      recorder.start();recording=true;
+      toast('Recording audio... Tap again to stop.');
+    }catch(err){toast('Mic error: '+err.message)}
+  } else {
+    recorder.stop();recording=false;
+  }
+});
+
+// Vault PIN Logic (Default PIN: 1225)
+let isVaultUnlocked=false, pinEntered="";
+const DEFAULT_PIN="1225";
+let vaultItems=[
+  {id:1, title:'Confidential Blueprint', url:'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500'}
+];
+
+function pressPin(d){
+  if(pinEntered.length<4){pinEntered+=d;updatePinDots()}
+  if(pinEntered.length===4){setTimeout(verifyPin,100)}
+}
+function clearPin(){pinEntered="";updatePinDots();$('pinErrorMsg').textContent=""}
+function backspacePin(){pinEntered=pinEntered.slice(0,-1);updatePinDots()}
+function updatePinDots(){
+  document.querySelectorAll('.pin-dot').forEach((dot,i)=>{
+    dot.classList.toggle('active',i<pinEntered.length);
+  });
+}
+function verifyPin(){
+  if(pinEntered===DEFAULT_PIN){
+    isVaultUnlocked=true;
+    $('vaultPinScreen').classList.add('hidden');
+    $('vaultContentScreen').classList.remove('hidden');
+    renderVaultGrid();clearPin();
+  } else {
+    $('pinErrorMsg').textContent="Incorrect PIN (Try 1225)";
+    clearPin();
+  }
+}
+function lockVault(){
+  isVaultUnlocked=false;
+  $('vaultContentScreen').classList.add('hidden');
+  $('vaultPinScreen').classList.remove('hidden');
+  clearPin();
+}
+function renderVaultGrid(){
+  const g=$('vaultGrid');g.innerHTML='';
+  vaultItems.forEach(item=>{
+    const c=document.createElement('div');c.className='vault-card';
+    c.innerHTML=`<img src="${item.url}"><button class="share-vault" onclick="shareVault(${item.id})"><i class="fa-solid fa-paper-plane"></i></button><div style="padding:6px;font-size:11px">${item.title}</div>`;
+    g.appendChild(c);
+  });
+}
+function addVaultItem(){
+  const t=prompt("Enter vault photo title:","Secure Slide");
+  if(!t)return;
+  vaultItems.unshift({id:Date.now(),title:t,url:'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=500'});
+  renderVaultGrid();
+}
+async function shareVault(id){
+  if(!chatRef){toast('Pehle Room Create ya Join karo!');return}
+  const item=vaultItems.find(v=>v.id===id);
+  if(!item)return;
+  await chatRef.push({senderName:currentProfile,text:`Vault Share: ${item.title}`,file:{name:item.title+'.jpg',type:'image/jpeg',url:item.url},createdAt:Date.now()});
+  switchView('chat');toast('Shared from Vault to Chat!');
+}
+
+// WebRTC Calls
+const rtcConfig={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
+async function startCall(video){
+  if(!callRef){toast('Pehle Room Create ya Join karo!');return}
+  try{
+    localStream=await navigator.mediaDevices.getUserMedia({audio:true,video});
+    $('localVideo').srcObject=localStream;
+    isCaller=true;currentCallId='call_'+Date.now();
+    pc=new RTCPeerConnection(rtcConfig);
+    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+    pc.ontrack=e=>{$('remoteVideo').srcObject=e.streams[0]};
+    pc.onicecandidate=e=>{if(e.candidate) callRef.child(currentCallId+'/callerCandidates').push(e.candidate.toJSON())};
+    
+    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
+    await callRef.child(currentCallId).set({caller:currentProfile,offer:{type:offer.type,sdp:offer.sdp},status:'ringing',video});
+    $('callStatus').textContent='Calling peer...';$('hangupBtn').disabled=false;
+  }catch(e){toast('Call error: '+e.message)}
+}
+
+$('voiceCallBtn').addEventListener('click',()=>startCall(false));
+$('videoCallBtn').addEventListener('click',()=>startCall(true));
+
+function handleCallState(data){
+  const sessions=data||{};
+  const entries=Object.entries(sessions);
+  const incoming=entries.find(([id,s])=>s.caller!==currentProfile && s.status==='ringing');
+  if(incoming){
+    queuedOffer={id:incoming[0],session:incoming[1]};
+    $('answerBtn').disabled=false;
+    $('callStatus').textContent=`Incoming ${incoming[1].video?'Video':'Voice'} call from ${incoming[1].caller}`;
+    return;
+  }
+  if(currentCallId && sessions[currentCallId]){
+    const s=sessions[currentCallId];
+    if(s.answer && pc && pc.signalingState==='have-local-offer'){
+      pc.setRemoteDescription(new RTCSessionDescription(s.answer));
     }
+    if(s.status==='ended'){endCall(false);$('callStatus').textContent='Call ended.'}
+  }
+}
 
-    function finalizeOrder() {
-        const name = document.getElementById('custName').value;
-        const ph = document.getElementById('custPhone').value;
-        const addr = document.getElementById('custAddr').value;
+$('answerBtn').addEventListener('click',async()=>{
+  if(!queuedOffer)return;
+  try{
+    currentCallId=queuedOffer.id;const ses=queuedOffer.session;isCaller=false;
+    localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:ses.video});
+    $('localVideo').srcObject=localStream;
+    pc=new RTCPeerConnection(rtcConfig);
+    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+    pc.ontrack=e=>{$('remoteVideo').srcObject=e.streams[0]};
+    pc.onicecandidate=e=>{if(e.candidate) callRef.child(currentCallId+'/calleeCandidates').push(e.candidate.toJSON())};
 
-        if(!name || !ph || !addr) return alert("Details bhariye!");
+    await pc.setRemoteDescription(new RTCSessionDescription(ses.offer));
+    const answer=await pc.createAnswer();await pc.setLocalDescription(answer);
+    await callRef.child(currentCallId).update({answer:{type:answer.type,sdp:answer.sdp},status:'active'});
+    $('answerBtn').disabled=true;$('hangupBtn').disabled=false;$('callStatus').textContent='Call connected!';
+  }catch(e){toast('Answer error: '+e.message)}
+});
 
-        let msg = `🍔 *NAYA ORDER - RAJ DABELI*\n\n👤 *Name:* ${name}\n📞 *Call:* ${ph}\n🏠 *Address:* ${addr}\n📍 *Maps:* ${userMapLink}\n\n*ITEMS:*\n`;
-        for(let i in cart) if(cart[i].q > 0) msg += `▪️ ${cart[i].n} x ${cart[i].q}\n`;
-        msg += `\n💰 *TOTAL BILL: ₹${total}*`;
-
-        window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`);
-        location.reload();
-    }
-    load();
+async function endCall(updateDB=true){
+  if(updateDB && currentCallId && callRef){await callRef.child(currentCallId).update({status:'ended'})}
+  if(pc){pc.close();pc=null}
+  if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}
+  $('localVideo').srcObject=null;$('remoteVideo').srcObject=null;
+  $('hangupBtn').disabled=true;$('answerBtn').disabled=true;
+  $('callStatus').textContent='Call ended.';currentCallId=null;queuedOffer=null;
+}
+$('hangupBtn').addEventListener('click',()=>endCall(true));
 </script>
 </body>
 </html>
